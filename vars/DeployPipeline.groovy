@@ -1,15 +1,23 @@
 def call(Map config) {
     pipeline {
         agent any
-        tools {
-            maven 'Maven-3.9.9'
-            jdk 'jdk8'
-        }
 
         stages {
-            stage('Init Envs') {
+            stage('Init Tools & Envs') {
                 steps {
                     script {
+                        // ========== 动态工具选择 ==========
+                        def mavenVersion = config.MAVEN ?: 'Maven-3.9.9'
+                        def jdkVersion   = config.JDK   ?: 'jdk8'
+
+                        env.MAVEN_HOME = tool name: mavenVersion, type: 'maven'
+                        env.JAVA_HOME  = tool name: jdkVersion, type: 'jdk'
+                        env.PATH = "${env.JAVA_HOME}/bin:${env.MAVEN_HOME}/bin:${env.PATH}"
+
+                        echo "🔧 Using Maven: ${env.MAVEN_HOME}"
+                        echo "🔧 Using JDK:   ${env.JAVA_HOME}"
+
+                        // ========== 环境变量 ==========
                         env.HOST_IP      = config.HOST_IP
                         env.USER         = config.USER
                         env.PORT         = config.PORT
