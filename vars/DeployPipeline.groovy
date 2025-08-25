@@ -6,20 +6,20 @@ def call(Map config) {
             jdk 'jdk8'
         }
         environment {
-            HOST_IP     = config.HOST_IP
-            USER        = config.USER
-            PORT        = config.PORT
+            HOST_IP      = config.HOST_IP
+            USER         = config.USER
+            PORT         = config.PORT
             PROJECT_NAME = config.PROJECT_NAME
+            GIT_PATH     = config.GIT_PATH
             SOURCE_PATH  = config.SOURCE_PATH ?: ""
             REMOTE_DIR   = config.REMOTE_DIR ?: "/opt/app/${config.PROJECT_NAME}/"
             JAR_NAME     = config.JAR_NAME ?: "${config.PROJECT_NAME}.jar"
             GIT_BRANCH   = config.GIT_BRANCH ?: 'main'
-            GIT_URL      = config.GIT_URL
         }
         stages {
             stage('Checkout') {
                 steps {
-                    git branch: "${GIT_BRANCH}", url: "${GIT_URL}"
+                    git branch: GIT_BRANCH, url: GIT_PATH
                 }
             }
 
@@ -59,6 +59,7 @@ def call(Map config) {
                                 script: "curl -s -w '%{http_code}' -o /tmp/resp.txt ${url} || true",
                                 returnStdout: true
                             ).trim()
+
                             lastResponse = sh(script: "cat /tmp/resp.txt || true", returnStdout: true).trim()
 
                             if (code == "200") {
