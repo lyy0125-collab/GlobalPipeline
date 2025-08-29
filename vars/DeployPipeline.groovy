@@ -18,6 +18,7 @@ def call(Map config) {
                         echo "🔧 Using JDK:   ${env.JAVA_HOME}"
 
                         // ========== 环境变量 ==========
+                        env.JAVA_VERSION = config.JDK
                         env.HOST_IP      = config.HOST_IP
                         env.USER         = config.USER
                         env.PORT         = config.PORT
@@ -48,7 +49,7 @@ def call(Map config) {
                     sh """
                         ssh ${env.USER}@${env.HOST_IP} 'mkdir -p ${env.REMOTE_DIR}'
                         scp ${env.SOURCE_PATH}${env.PROJECT_NAME}/target/${env.JAR_NAME} ${env.USER}@${env.HOST_IP}:${env.REMOTE_DIR}
-                        ssh ${env.USER}@${env.HOST_IP} 'bash ${env.REMOTE_DIR}startup.sh'
+                        ssh ${env.USER}@${env.HOST_IP} 'bash /opt/app/startup.sh ${env.PROJECT_NAME} ${env.JAVA_VERSION}'
                     """
                 }
             }
