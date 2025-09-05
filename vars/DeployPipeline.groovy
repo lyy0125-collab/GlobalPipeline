@@ -58,40 +58,40 @@ def call(Map config) {
                 steps {
                     script {
                         def url = "http://${env.HOST_IP}:${env.PORT}/actuator/health"
-                        def maxTime = 180
                         def interval = 5
-                        def elapsed = 0
-                        def success = false
                         def lastResponse = ""
 
                         echo "等待 30 秒后开始检查服务健康..."
                         sleep 30
 
-                        while (elapsed < maxTime) {
-                            def code = sh(
-                                script: "curl -s -w '%{http_code}' -o /tmp/resp.txt ${url} || true",
-                                returnStdout: true
-                            ).trim()
+                        try {
+                            timeout(time: 3, unit: 'MINUTES') {
+                                while (true) {
+                                    def code = sh(
+                                        script: "curl -s -w '%{http_code}' -o /tmp/resp.txt ${url} || true",
+                                        returnStdout: true
+                                    ).trim()
 
-                            lastResponse = sh(script: "cat /tmp/resp.txt || true", returnStdout: true).trim()
+                                    lastResponse = sh(
+                                        script: "cat /tmp/resp.txt || true",
+                                        returnStdout: true
+                                    ).trim()
 
-                            if (code == "200") {
-                                echo "✅ 服务 ${env.PROJECT_NAME} 健康检查成功 (HTTP 200)"
-                                success = true
-                                break
-                            } else {
-                                echo "❌ 服务响应异常，状态码: ${code}"
+                                    if (code == "200") {
+                                        echo "✅ 服务 ${env.PROJECT_NAME} 健康检查成功 (HTTP 200)"
+                                        return
+                                    } else {
+                                        echo "❌ 服务未就绪，状态码: ${code}"
+                                    }
+
+                                    sleep interval
+                                }
                             }
-
-                            sleep interval
-                            elapsed += interval
-                        }
-
-                        if (!success) {
+                        } catch (err) {
                             echo "------ 服务最后一次返回内容 ------"
                             echo lastResponse
                             echo "--------------------------------"
-                            error "服务 ${env.PROJECT_NAME} 启动失败"
+                            error "服务 ${env.PROJECT_NAME} 启动失败 (超过 3 分钟仍未成功)"
                         }
                     }
                 }
