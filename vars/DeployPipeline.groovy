@@ -46,9 +46,16 @@ def call(Map config) {
 
             stage('Deploy') {
                 steps {
+                    def localJarPath = ""
+                    if (env.SOURCE_PATH == "~") {
+                        localJarPath = "target/${env.JAR_NAME}"
+                    } else {
+                        localJarPath = "${env.SOURCE_PATH}${env.PROJECT_NAME}/target/${env.JAR_NAME}"
+                    }
+                    
                     sh """
                         ssh ${env.USER}@${env.HOST_IP} 'mkdir -p ${env.REMOTE_DIR}'
-                        scp ${env.SOURCE_PATH}${env.PROJECT_NAME}/target/${env.JAR_NAME} ${env.USER}@${env.HOST_IP}:${env.REMOTE_DIR}
+                        scp ${localJarPath} ${env.USER}@${env.HOST_IP}:${env.REMOTE_DIR}
                         ssh ${env.USER}@${env.HOST_IP} 'bash /opt/app/startup.sh ${env.PROJECT_NAME} ${env.JAVA_VERSION}'
                     """
                 }
