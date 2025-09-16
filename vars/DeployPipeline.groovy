@@ -40,7 +40,11 @@ def call(Map config) {
 
             stage('Build') {
                 steps {
-                    sh "mvn clean package -f ./${env.SOURCE_PATH}pom.xml"
+                    if (env.SOURCE_PATH == "~") {
+                         sh "mvn clean package -f ./pom.xml"
+                    } else {
+                         sh "mvn clean package -f ./${env.SOURCE_PATH}pom.xml"
+                    }
                 }
             }
 
